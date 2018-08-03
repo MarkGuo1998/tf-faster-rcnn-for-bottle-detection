@@ -1,4 +1,4 @@
-# Tensorflow-Faster-Rcnn-for-Bottle-Detection
+# Tensorflow-Faster-RCNN-for-Bottle-Detection
 ### 声明与致谢
 
   - 本文档及本代码的主体部分参考[这个GitHub链接](https://github.com/endernewton/tf-faster-rcnn)。
