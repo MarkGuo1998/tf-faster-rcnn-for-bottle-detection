@@ -91,13 +91,13 @@
    ```
 
 3. 测试（训练结束后会自动调用一次test）
-  ```Shell
-  ./experiments/scripts/test_faster_rcnn.sh [GPU_ID] pascal_voc [NET]
-  # GPU_ID is the GPU you want to test on
-  # NET in {vgg16, res50, res101, res152} is the network arch to use
-  # Examples:
-  ./experiments/scripts/test_faster_rcnn.sh 0 pascal_voc res101
-  ```
+      ```Shell
+      ./experiments/scripts/test_faster_rcnn.sh [GPU_ID] pascal_voc [NET]
+      # GPU_ID is the GPU you want to test on
+      # NET in {vgg16, res50, res101, res152} is the network arch to use
+      # Examples:
+      ./experiments/scripts/test_faster_rcnn.sh 0 pascal_voc res101
+      ```
 
 4. 检查测试结果（test程序输出的Mean AP似乎有问题）
 
@@ -109,28 +109,42 @@
 
 1. 在CPU上训练时，每次迭代平均耗时10秒（VGG-16）或20秒（ResNet-101）。
 
-	在GPU（1块Tesla P100）上训练时，每次迭代耗时0.33秒（VGG-16）或0.50秒（ResNet-101）。
+  在GPU（1块Tesla P100）上训练时，每次迭代耗时0.33秒（VGG-16）或0.50秒（ResNet-101）。
 
-	考虑到训练3000步的模型就可以达到相当不错的效果，我们在CPU上最快只需训练10小时，而GPU上最快只需训练30分钟，即可以把得到的模型投入使用。
+  考虑到训练3000步的模型就可以达到相当不错的效果，我们在CPU上最快只需训练10小时，而GPU上最快只需训练30分钟，即可以把得到的模型投入使用。
 
 2. 在CPU上测试时，每张图片平均耗时3秒（VGG-16）或7秒（ResNet-101）。
 
-	在GPU（1块Tesla P100）上测试时，每张图片耗时0.12秒（VGG-16）或0.20秒（ResNet-101）。
+  在GPU（1块Tesla P100）上测试时，每张图片耗时0.10秒（VGG-16）或0.18秒（ResNet-101）。
 
-	由于任务比较简单，VGG-16和ResNet-101在测试集上的准确率都接近100%。
+  由于任务比较简单，VGG-16和ResNet-101在测试集上的准确率都接近100%。
 
 3. Loss基线：
 
-	- VGG-16：0.12（训到0.16就能用了）
-	- ResNet-101：0.35（训到0.40就能用了）
+  - VGG-16：0.12（训到0.16就能用了）
+  - ResNet-101：0.35（训到0.40就能用了）
 
-	Mean AP：
+4. Mean AP：
 
-	- 一般是0.909（但这个数有些问题，人工检查都是100%）
+	- 
+		（VOC10前的metrics）一般是0.90以上
+		
+		​	这个数之所以不是1，是评估指标的问题，实际上0.909可以认为是100%识别了
+	
+	- （VOC10后的metrics）至少0.997
+
+5. 显存消耗：
+
+	- Training 9000MiB
+	- Test 7000MiB
+		- 
+			经实验，4000MiB显存也能带得动，而且速度未见降低太多
+		- 2000MiB会让时间增加40%
 
 ### 总结与展望
 
 1. 限制faster-rcnn表现的瓶颈主要是网络结构。太简单的网络不足以达到高准确率，太复杂的网络又会显著降低运行速度。在这方面，最好采用GPU进行加速。
 2. 我调整了原算法对anchor的选择，原来是3种大小*3种形状=9种anchor，我改成了1种（因为酒瓶口对应的box一定是同种大小的正方形）。修改后未见提速，但是观察到loss下降（不确定是否为实验误差）。
 3. 如要再提升效率，可以考虑改进box regression部分的选择策略，使回归的结果也全部都是正方形。
-4. 目前的算法不能正确处理带瓶盖的瓶子，因为训练时没有获得这部分数据。
+4. ~~目前的算法不能正确处理带瓶盖的瓶子，因为训练时没有获得这部分数据。~~
+5. YOLO系虽然很快，但它们不如R-CNN的地方主要是准确率，对这种要求高精度的任务，感觉还是Faster R-CNN更好用一些。如果时间或设备实在达不到要求，以后会考虑YOLO v3。
